@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VR ADMIN</title>
+    <link href="{{ STATIC_URL }}css/bootstrap-select.min.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}css/bootstrap.css" rel="stylesheet">
+
+</head>
+<body>
+<div class="container">
+    <h1>VR ADMIN</h1>
+    <div class="row">
+        <form>
+            <div class="form-group row">
+                <div class="col-md-6">
+                    <label for="device">Device</label><br>
+                    <select id="device" name="device" class="selectpicker">
+                        {% for c in clients %}
+                            <option value="{{ c }}">{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <div class="col-md-6">
+                    <label for="time">Time</label>
+                    <input type="text" class="form-control" id="time" placeholder="Time">
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <div class="col-md-6">
+                    <button id="play_video" type="button" class="btn btn-primary">Play</button>
+                    <button id="pause_video" type="button" class="btn btn-success">Pause</button>
+                    <button id="info_video" type="button" class="btn btn-info">Info</button>
+                    <button id="time_video" type="button" class="btn btn-warning">Time</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap-select.min.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('.selectpicker').selectpicker();
+        });
+    </script>
+    <script>
+        function getCookie(name) {
+            var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
+            return r ? r[1] : undefined;
+        }
+        function get_device(){
+            return $("#device").val();
+        }
+        function get_time(){
+            return $("#time").val();
+        }
+        $("#play_video").click(function(){
+            data = {
+                "client_id": get_device(),
+                "command": "play",
+                "_xsrf": getCookie("_xsrf")
+            };
+            $.ajax({
+                type: "POST",
+                url: "/api",
+                data: data
+            })
+        });
+        $("#pause_video").click(function(){
+            data = {
+                "client_id": get_device(),
+                "command": "pause",
+                "_xsrf": getCookie("_xsrf")
+            };
+            $.ajax({
+                type: "POST",
+                url: "/api",
+                data: data
+            })
+        });
+        $("#time_video").click(function(){
+            data = {
+                "client_id": get_device(),
+                "command": "set_time",
+                "time": get_time(),
+                "_xsrf": getCookie("_xsrf")
+            };
+            $.ajax({
+                type: "POST",
+                url: "/api",
+                data: data
+            })
+        });
+        $("#info_video").click(function(){
+            data = {
+                "client_id": get_device(),
+                "command": "get_info",
+                "_xsrf": getCookie("_xsrf")
+            };
+            $.ajax({
+                type: "POST",
+                url: "/api",
+                data: data
+            })
+            .done(function(data) {
+                    console.log(data);})
+        })
+
+    </script>
+
+</div>
+</body>
+</html>
