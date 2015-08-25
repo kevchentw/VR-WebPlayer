@@ -104,7 +104,8 @@
     <script src="{{ STATIC_URL }}js/webvr.js" type="text/javascript"></script>
     <script src="{{ STATIC_URL }}js/phonevr.js" type="text/javascript"></script>
     <script src="{{ STATIC_URL }}js/elevr-player.js" type="text/javascript"></script>
-    <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-2.1.4.min.js"></script>
+    <script src="{{ STATIC_URL }}js/jquery-2.1.4.min.js"  type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}js/reconnecting-websocket.js"  type="text/javascript"></script>
 </head>
 
 <body>
@@ -135,8 +136,6 @@
     <!-- Video Controls -->
     <div id="video-controls" class="hidden">
         <a id="play-pause" class="fa fa-play icon" title="Play"></a>
-
-
         <input type="range" id="seek-bar" value="0">
 
         <a id="loop" class="fa fa-chain-broken icon" title="Stop Looping"></a>
@@ -158,80 +157,116 @@
         </select>
 
         <a id="full-screen" class="fa fa-expand icon rfloat" title="Full Screen"></a>
-        <a id="client_id"></a>
+        <a id="client_id" class="rfloat"></a>
     </div>
 
     <script>runEleVRPlayer();</script>
-<script>
-    client_id = $("#client_id");
-    function new_conn(data) {
-        client_id.text(data['id']);
-    }
-    function new_msg(data) {
-        msg = $("#msg");
-        msg.text(data['msg']);
-    }
-    function play(data) {
-        controls.play();
-    }
-    function pause(data) {
-        controls.pause();
-    }
-    function get_info() {
-        data = {
-            "video_time": video.currentTime,
-            "camera": manualRotation,
-            "play": video.paused
-        };
-        return data;
-    }
-    function set_time(data) {
-        video.currentTime = data['time'];
-    }
-</script>
-
-<script>
-    var ws = new WebSocket('ws://localhost:8888/ws');
-    client_id = $("#client_id");
-    ws.onopen = function () {
-        console.log("get connection");
-    };
-    ws.onmessage = function (ev) {
-        console.log("receiving message");
-        var json = JSON.parse(ev.data);
-        console.log(json);
-        switch (json['command']) {
-            case "new_conn":
-                new_conn(json['data']);
-                break;
-            case "msg":
-                new_msg(json['data']);
-                console.log(json['data']);
-                break;
-            case "play":
-                play(json['data']);
-                break;
-            case "pause":
-                pause(json['data']);
-                break;
-            case "get_info":
-                var info = get_info();
-                ws.send(JSON.stringify(info));
-                break;
-            case "set_time":
-                set_time(json['data']);
-                break;
-            default :
-                console.log("Unknown Command");
+    <script>
+        client_id = $("#client_id");
+        function new_conn(data) {
+            console.log(client_id.text());
+            if (client_id.text()) {
+                var payload = {
+                    "command": "set_id",
+                    "destn_role": "ws_server",
+                    "destn_id": "SERV",
+                    "send_to": "ws_server",
+                    "data": {
+                        "client_id": data['id'],
+                        "new_client_id": client_id.text()
+                    }
+                };
+                return payload;
+            }
+            else {
+                client_id.text(data['id']);
+                return null;
+            }
         }
-    };
-    ws.onclose = function (ev) {
-        console.log("close");
-    };
-    ws.onerror = function (ev) {
-        console.log("error");
-    };
-</script>
+        function new_msg(data) {
+            msg = $("#msg");
+            msg.text(data['msg']);
+        }
+        function play(data) {
+            controls.play();
+        }
+        function pause(data) {
+            controls.pause();
+        }
+        function get_info() {
+            var payload = {
+                "command": "send_info",
+                "destn_role": "admin",
+                "destn_id": "admin",
+                "send_to": "ws_server",
+                "data": {
+                    "video_time": video.currentTime,
+                    "camera": manualRotation,
+                    "play": video.paused,
+                    "client_id": client_id.text()
+                }
+            };
+            return payload;
+        }
+        function set_time(data) {
+            video.currentTime = data['time'];
+        }
+    </script>
+
+    <script>
+        function ws_connect(){
+            ws = new ReconnectingWebSocket('ws://localhost:8888/ws');
+            client_id = $("#client_id");
+            ws.onopen = function () {
+                console.log("get connection");
+            };
+            ws.onmessage = function (ev) {
+                console.log("receiving message");
+                var json = JSON.parse(ev.data);
+                console.log(json);
+                switch (json['command']) {
+                    case "new_conn":
+                        var comm = new_conn(json['data']);
+                        if(comm){
+                            ws.send(JSON.stringify(comm));
+                        }
+                        break;
+                    case "msg":
+                        new_msg(json['data']);
+                        console.log(json['data']);
+                        break;
+                    case "play":
+                        play(json['data']);
+                        break;
+                    case "pause":
+                        pause(json['data']);
+                        break;
+                    case "get_info":
+                        var info = get_info();
+                        ws.send(JSON.stringify(info));
+                        break;
+                    case "set_time":
+                        set_time(json['data']);
+                        break;
+                    default :
+                        console.log("Unknown Command");
+                }
+            };
+            ws.onclose = function (ev) {
+                console.log("close");
+            };
+            ws.onerror = function (ev) {
+                console.log("error");
+            };
+        }
+        $(document).ready(function(){
+            ws_connect();
+        });
+        setInterval(function() {
+            var info = get_info();
+            ws.send(JSON.stringify(info));
+        }, 1000);
+    </script>
 </div>
 
 </body>
