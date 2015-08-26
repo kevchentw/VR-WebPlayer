@@ -9,53 +9,8 @@
 <div class="container">
     <h1>VR</h1>
     <h4 id="client_id"></h4>
-
-    <div class="row">
-        <div class="span4">
-            <div id="msg"></div>
-        </div>
-    </div>
+    <a href="/player">Player</a><br>
+    <a href="/admin">admin</a>
 </div>
-
-<script>
-    client_id = $("#client_id");
-    function new_conn(data) {
-        client_id.text(data['id']);
-    }
-    function new_msg(data) {
-        msg = $("#msg");
-        msg.text(data['msg']);
-    }
-</script>
-
-<script>
-    var ws = new WebSocket('ws://localhost:8888/ws');
-    client_id = $("#client_id");
-    ws.onopen = function () {
-        console.log("get connection");
-    };
-    ws.onmessage = function (ev) {
-        console.log("receiving message");
-        var json = JSON.parse(ev.data);
-        console.log(json);
-        switch (json['type']) {
-            case "new_conn":
-                new_conn(json['data']);
-                break;
-            case "msg":
-                new_msg(json['data']);
-                console.log(json['data']);
-                break;
-            default :
-                console.log("Unknown Command");
-        }
-    };
-    ws.onclose = function (ev) {
-        console.log("close");
-    };
-    ws.onerror = function (ev) {
-        console.log("error");
-    };
-</script>
 </body>
 </html>
