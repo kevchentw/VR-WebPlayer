@@ -24,6 +24,7 @@ settings = {
     'media_url_prefix': '/media/',
     "cookie_secret": "ryrt/VB9oXwQt8S0R0kRvJ5/xJ89E=",
     "xsrf_cookies": True,
+    "ws_server": "ws://localhost:8888/ws",
 }
 
 app = web.Application([

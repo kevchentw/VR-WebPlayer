@@ -38,6 +38,7 @@ class BaseHandler(web.RequestHandler, TemplateRendering):
             'settings': self.settings,
             'STATIC_URL': self.settings.get('static_url_prefix', '/static/'),
             'MEDIA_URL': self.settings.get('media_url_prefix', '/media/'),
+            'WS_SERVER': self.settings.get('ws_server', 'ws://localhost:8888/ws'),
             'request': self.request,
             'current_user': self.current_user,
             'xsrf_token': self.xsrf_token,

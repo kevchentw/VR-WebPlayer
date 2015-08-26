@@ -207,6 +207,7 @@
                     "video_time": video.currentTime,
                     "camera": manualRotation,
                     "play": video.paused,
+                    "volume": video.volume,
                     "client_id": client_id.text()
                 }
             };
@@ -219,7 +220,7 @@
 
     <script>
         function ws_connect(){
-            ws = new ReconnectingWebSocket('ws://localhost:8888/ws');
+            ws = new ReconnectingWebSocket('{{ WS_SERVER }}');
             client_id = $("#client_id");
             ws.onopen = function () {
                 console.log("get connection");
@@ -269,7 +270,7 @@
         setInterval(function() {
             var info = get_info();
             ws.send(JSON.stringify(info));
-        }, 1000);
+        }, 100);
     </script>
 </div>
 

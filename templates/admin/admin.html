@@ -46,6 +46,7 @@
                 <tr>
                     <th>ID</th>
                     <th>Time</th>
+                    <th>Volume</th>
                     <th>Camera</th>
                     <th>Play</th>
                 </tr>
@@ -55,6 +56,7 @@
                     <tr class="{{ c }}">
                         <td class="client_id"></td>
                         <td class="time"></td>
+                        <td class="volume"></td>
                         <td class="camera"></td>
                         <td class="play"></td>
                     </tr>
@@ -90,7 +92,7 @@
                                 .attr("id",value)
                                 .text(value));
                 $('#device_table')
-                        .append("<tr class=\"" + value + "\"></td><td class=\"client_id\">" + value + "</td><td class=\"time\"></td><td class=\"camera\"></td><td class=\"play\"></td></tr>");
+                        .append("<tr class=\"" + value + "\"></td><td class=\"client_id\">" + value + "</td><td class=\"time\"></td><td class=\"volume\"></td><td class=\"camera\"></td><td class=\"play\"></td></tr>");
             });
             $("#device_list").val(old);
 
@@ -227,11 +229,12 @@
         function refresh_data(data) {
             var t = $("."+data['client_id']);
             t.children(".time").text(data['video_time']);
+            t.children(".volume").text(data['volume']);
             t.children(".camera").text(JSON.stringify(data['camera']));
             t.children(".play").text(data['play']);
         }
         function ws_connect(){
-            ws = new ReconnectingWebSocket('ws://localhost:8888/ws');
+            ws = new ReconnectingWebSocket('{{ WS_SERVER }}');
             ws.onopen = function () {
                 console.log("get connection");
             };
