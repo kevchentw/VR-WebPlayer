@@ -4,11 +4,15 @@
     <title>VR ADMIN</title>
     <link href="{{ STATIC_URL }}css/bootstrap-select.min.css" rel="stylesheet">
     <link href="{{ STATIC_URL }}css/bootstrap.css" rel="stylesheet">
-    <script src="{{ STATIC_URL }}js/reconnecting-websocket.js"  type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}js/reconnecting-websocket.js" type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}js/Chart.min.js" type="text/javascript"></script>
 </head>
 <body>
 <div class="container">
-    <h1>VR ADMIN</h1>  <div id="client_id"></div>
+    <h1>VR ADMIN</h1>
+
+    <div id="client_id"></div>
+
     <div class="row">
         <form>
             <div class="form-group row">
@@ -31,9 +35,17 @@
 
             <div class="form-group row">
                 <div class="col-md-6">
+                    <label for="volume">Volume</label>
+                    <input type="text" class="form-control" id="volume" placeholder="Volume">
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <div class="col-md-6">
                     <button id="play_video" type="button" class="btn btn-primary">Play</button>
                     <button id="pause_video" type="button" class="btn btn-success">Pause</button>
-                    <button id="info_video" type="button" class="btn btn-info">Info</button>
+                    <button id="volume_video" type="button" class="btn btn-info">Volume</button>
+{#                    <button id="info_video" type="button" class="btn btn-info">Info</button>#}
                     <button id="time_video" type="button" class="btn btn-warning">Time</button>
                 </div>
             </div>
@@ -63,7 +75,11 @@
                 {% endfor %}
                 </tbody>
             </table>
-
+        </div>
+    </div>
+    <div class="container">
+        <div class="row">
+            <canvas id="updating-chart" width="500" height="300"></canvas>
         </div>
     </div>
     <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-2.1.4.min.js"></script>
@@ -71,25 +87,26 @@
     <script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
 
     <script type="text/javascript">
-        $(document).ready(function() {
+        $(document).ready(function () {
             $('.selectpicker').selectpicker();
         });
-        function remove_list(){
-            $("#device_list option").each(function() {
+
+        function remove_list() {
+            $("#device_list option").each(function () {
                 $(this).remove();
             });
-            $("#device_table tr").each(function() {
+            $("#device_table tr").each(function () {
                 $(this).remove();
             });
         }
-        function add_list(data){
+        function add_list(data) {
             var old = $("#device_list").val();
-            $.each(data['devices'], function(key, value) {
+            $.each(data['devices'], function (key, value) {
                 console.log("new");
                 $('#device_list')
                         .append($("<option></option>")
-                                .attr("value",value)
-                                .attr("id",value)
+                                .attr("value", value)
+                                .attr("id", value)
                                 .text(value));
                 $('#device_table')
                         .append("<tr class=\"" + value + "\"></td><td class=\"client_id\">" + value + "</td><td class=\"time\"></td><td class=\"volume\"></td><td class=\"camera\"></td><td class=\"play\"></td></tr>");
@@ -104,8 +121,9 @@
         }
     </script>
     <script>
+        var connection_count = 0;
         $.ajaxSetup({
-            beforeSend: function(jqXHR, settings) {
+            beforeSend: function (jqXHR, settings) {
                 type = settings.type;
                 if (type != 'GET' && type != 'HEAD' && type != 'OPTIONS') {
                     var pattern = /(.+; *)?_xsrf *= *([^;" ]+)/;
@@ -114,12 +132,13 @@
                         jqXHR.setRequestHeader('X-Xsrftoken', xsrf[2]);
                     }
                 }
-            }});
+            }
+        });
 
-        function get_device(){
+        function get_device() {
             return $("#device_list").val();
         }
-        function check_device_selected(){
+        function check_device_selected() {
             if ($("#device_list").val()) {
                 $("#device_error").text("");
                 return true;
@@ -129,10 +148,13 @@
                 return false;
             }
         }
-        function get_time(){
+        function get_time() {
             return $("#time").val();
         }
-        $("#play_video").click(function(){
+        function get_volume() {
+            return $("#volume").val();
+        }
+        $("#play_video").click(function () {
             if (!check_device_selected()) {
                 return;
             }
@@ -141,12 +163,11 @@
                 "destn_role": "client",
                 "destn_id": get_device(),
                 "send_to": "ws_server",
-                "data": {
-                }
+                "data": {}
             };
             ws.send(JSON.stringify(payload));
         });
-        $("#pause_video").click(function(){
+        $("#pause_video").click(function () {
             if (!check_device_selected()) {
                 return;
             }
@@ -155,12 +176,11 @@
                 "destn_role": "client",
                 "destn_id": get_device(),
                 "send_to": "ws_server",
-                "data": {
-                }
+                "data": {}
             };
             ws.send(JSON.stringify(payload));
         });
-        $("#time_video").click(function(){
+        $("#time_video").click(function () {
             if (!check_device_selected()) {
                 return;
             }
@@ -175,7 +195,22 @@
             };
             ws.send(JSON.stringify(payload));
         });
-        $("#info_video").click(function(){
+        $("#volume_video").click(function () {
+            if (!check_device_selected()) {
+                return;
+            }
+            var payload = {
+                "command": "set_volume",
+                "destn_role": "client",
+                "destn_id": get_device(),
+                "send_to": "ws_server",
+                "data": {
+                    "volume": get_volume()
+                }
+            };
+            ws.send(JSON.stringify(payload));
+        });
+        $("#info_video").click(function () {
             if (!check_device_selected()) {
                 return;
             }
@@ -184,8 +219,7 @@
                 "destn_role": "client",
                 "destn_id": get_device(),
                 "send_to": "ws_server",
-                "data": {
-                }
+                "data": {}
             };
             ws.send(JSON.stringify(payload));
         });
@@ -227,13 +261,13 @@
             return JSON.stringify(payload);
         }
         function refresh_data(data) {
-            var t = $("."+data['client_id']);
+            var t = $("." + data['client_id']);
             t.children(".time").text(data['video_time']);
             t.children(".volume").text(data['volume']);
             t.children(".camera").text(JSON.stringify(data['camera']));
             t.children(".play").text(data['play']);
         }
-        function ws_connect(){
+        function ws_connect() {
             ws = new ReconnectingWebSocket('{{ WS_SERVER }}');
             ws.onopen = function () {
                 console.log("get connection");
@@ -245,12 +279,13 @@
                 switch (json['command']) {
                     case "new_conn":
                         var comm = new_conn(json['data']);
-                        if(comm){
+                        if (comm) {
                             ws.send(JSON.stringify(comm));
                         }
                         ws.send(change_role());
                         break;
                     case "send_info":
+                        connection_count += 1;
                         refresh_data(json['data']);
                         break;
                     case "device_list":
@@ -268,11 +303,41 @@
                 console.log("error");
             };
         }
-        $(document).ready(function(){
+        $(document).ready(function () {
             ws_connect();
         });
     </script>
+    <script>
 
+        var canvas = document.getElementById('updating-chart'),
+                ctx = canvas.getContext('2d'),
+                startingData = {
+                    labels: [1, 2, 3, 4, 5, 6, 7],
+                    datasets: [
+                        {
+                            fillColor: "rgba(151,187,205,0.2)",
+                            strokeColor: "rgba(151,187,205,1)",
+                            pointColor: "rgba(151,187,205,1)",
+                            pointStrokeColor: "#fff",
+                            data: [0, 0, 0, 0, 0, 0, 0]
+                        }
+                    ]
+                },
+                latestLabel = startingData.labels[6];
+
+        // Reduce the animation steps for demo clarity.
+        var myLiveChart = new Chart(ctx).Line(startingData, {animationSteps: 15});
+
+
+        setInterval(function () {
+            // Add two random numbers for each dataset
+            myLiveChart.addData([parseInt(connection_count / 5)], ++latestLabel);
+            connection_count = 0;
+            // Remove the first point so we dont just add values forever
+            myLiveChart.removeData();
+        }, 5000);
+
+    </script>
 </div>
 </body>
 </html>

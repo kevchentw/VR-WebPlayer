@@ -206,7 +206,7 @@
                 "data": {
                     "video_time": video.currentTime,
                     "camera": manualRotation,
-                    "play": video.paused,
+                    "play": !Boolean(video.paused),
                     "volume": video.volume,
                     "client_id": client_id.text()
                 }
@@ -215,6 +215,12 @@
         }
         function set_time(data) {
             video.currentTime = data['time'];
+        }
+        function set_volume(data) {
+            if(data['volume']>=0 && data['volume']<=1){
+                video.volume = data['volume'];
+                window.volumeBar.value = data['volume'];
+            }
         }
     </script>
 
@@ -252,6 +258,9 @@
                         break;
                     case "set_time":
                         set_time(json['data']);
+                        break;
+                    case "set_volume":
+                        set_volume(json['data']);
                         break;
                     default :
                         console.log("Unknown Command");
