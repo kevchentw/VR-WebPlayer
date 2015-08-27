@@ -32,7 +32,7 @@ class SocketHandler(websocket.WebSocketHandler):
             self.send_device_list()
 
     def on_message(self, data):
-        send_to_client = ['play', 'pause', 'set_time', 'set_volume', 'get_info']
+        send_to_client = ['play', 'pause', 'set_time', 'set_volume', 'get_info', 'set_img']
         send_to_admin = ['send_info']
         data = json.loads(data)
         comm = data['command']

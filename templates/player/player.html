@@ -187,10 +187,6 @@
                 return null;
             }
         }
-        function new_msg(data) {
-            msg = $("#msg");
-            msg.text(data['msg']);
-        }
         function play(data) {
             controls.play();
         }
@@ -241,10 +237,6 @@
                         if(comm){
                             ws.send(JSON.stringify(comm));
                         }
-                        break;
-                    case "msg":
-                        new_msg(json['data']);
-                        console.log(json['data']);
                         break;
                     case "play":
                         play(json['data']);

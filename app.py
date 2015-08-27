@@ -6,6 +6,7 @@ from Socket.handler import SocketHandler
 from Player.handler import PlayerHandler
 from base_handler import BaseHandler
 from Admin.handler import AdminHandler
+from Photo.handler import PhotoHandler
 
 class IndexHandler(BaseHandler):
     def get(self):
@@ -32,6 +33,7 @@ app = web.Application([
     (r'/ws', SocketHandler),
     (r'/api', ApiHandler),
     (r'/player', PlayerHandler),
+    (r'/photo', PhotoHandler),
     (r'/admin', AdminHandler),
     (r'/media/(.*)', web.StaticFileHandler, {'path': MEDIA_PATH}),
     (r'/(favicon.ico)', web.StaticFileHandler, {'path': '../'}),

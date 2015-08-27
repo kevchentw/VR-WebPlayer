@@ -42,11 +42,19 @@
 
             <div class="form-group row">
                 <div class="col-md-6">
+                    <label for="volume">Set Image</label>
+                    <input type="text" class="form-control" id="img" placeholder="img">
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <div class="col-md-6">
                     <button id="play_video" type="button" class="btn btn-primary">Play</button>
                     <button id="pause_video" type="button" class="btn btn-success">Pause</button>
                     <button id="volume_video" type="button" class="btn btn-info">Volume</button>
 {#                    <button id="info_video" type="button" class="btn btn-info">Info</button>#}
                     <button id="time_video" type="button" class="btn btn-warning">Time</button>
+                    <button id="set_img" type="button" class="btn btn-danger">Img</button>
                 </div>
             </div>
         </form>
@@ -154,6 +162,9 @@
         function get_volume() {
             return $("#volume").val();
         }
+        function get_img() {
+            return $("#img").val();
+        }
         $("#play_video").click(function () {
             if (!check_device_selected()) {
                 return;
@@ -223,7 +234,21 @@
             };
             ws.send(JSON.stringify(payload));
         });
-
+        $("#set_img").click(function () {
+            if (!check_device_selected()) {
+                return;
+            }
+            var payload = {
+                "command": "set_img",
+                "destn_role": "client",
+                "destn_id": get_device(),
+                "send_to": "ws_server",
+                "data": {
+                    "img": get_img()
+                }
+            };
+            ws.send(JSON.stringify(payload));
+        });
     </script>
     <script>
         var client_id = $("#client_id");
